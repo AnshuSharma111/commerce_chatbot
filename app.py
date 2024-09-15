@@ -24,5 +24,9 @@ chunks = split_documents(faq_file)
 addToChroma(chunks)
 
 # query to the model
-query_text = "My package has not been delivered yet.. What should I do?" 
-query_rag(query_text)
+while True:
+    q = input("Enter your query [Write EXIT to exit]: ")
+    if q == "EXIT":
+        break
+    else:
+      query_rag(q)
