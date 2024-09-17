@@ -1,0 +1,4 @@
+1) Install Ollama on your Machine
+2) Go to command prompt and run the command "Ollama pull gemma2" and "Ollama pull nomic-embed-text"
+3) Keep faq.pdf in the same directory as the other files
+4) Run app.py to run the application
