@@ -5,10 +5,11 @@ from langchain_community.embeddings.ollama import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.llms.ollama import Ollama
+import os
 
 
 CHROMA_PATH = "chroma"
-DOC_PATH = 'D:\CodeCubicle3.0\data'
+DOC_PATH = os.path.abspath('faq.pdf')
 PROMPT_TEMPLATE = """
 Answer the question based only on the following context:
 
@@ -17,6 +18,8 @@ Answer the question based only on the following context:
 ---
 
 Answer the question based on the above context: {question}
+And not once in the answer should there be mention of "the above text" or "the text".
+If the question is out in the text, simply respond with some variation of, "This topic is out of my expertise. I cannot answer the question"
 """
 
 
@@ -98,12 +101,11 @@ def query_rag(query):
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
     # Search the DB.
-    results = db.similarity_search_with_score(query, k=5)
+    results = db.similarity_search_with_score(query, k=3)
 
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
     prompt = prompt_template.format(context=context_text, question=query)
-    # print(prompt)s
 
     model = Ollama(model="gemma2")
     response_text = model.invoke(prompt)
@@ -112,3 +114,11 @@ def query_rag(query):
     formatted_response = f"Response: {response_text}\nSources: {sources}"
     print(formatted_response)
     return response_text
+
+def initialise():
+    # load
+    faq_file = load_document()
+    # chunk
+    chunks = split_documents(faq_file)
+    # add to db
+    addToChroma(chunks)
