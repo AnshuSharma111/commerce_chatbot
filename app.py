@@ -1,32 +1,31 @@
-from langchain_community.document_loaders import PyPDFDirectoryLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.schema.document import Document
-from langchain_community.embeddings.ollama import OllamaEmbeddings
-from langchain_community.vectorstores import Chroma
-from langchain.prompts import ChatPromptTemplate
-from langchain_community.llms.ollama import Ollama
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
+from helper import query_rag, initialise
 
-from helper import load_document
-from helper import split_documents
-from helper import addToChroma
-from helper import query_rag
+def submit_query():
+    query = entry.get()
 
-CHROMA_PATH = "chroma"
-DOC_PATH = 'D:\CodeCubicle3.0\data'
+    initialise()
+    output = query_rag(query)
 
-# load document
-faq_file = load_document()
+    output_label.config(text=f"{output}")
 
-# chunk document
-chunks = split_documents(faq_file)
+root = ttk.Window(themename="darkly")
+root.title("Query Input App")
 
-# update database
-addToChroma(chunks)
+prompt_label = ttk.Label(root, text="Enter Query", font=("Helvetica", 12, "bold"))
+prompt_label.pack(pady=10)
 
-# query to the model
-while True:
-    q = input("Enter your query [Write EXIT to exit]: ")
-    if q == "EXIT":
-        break
-    else:
-      query_rag(q)
+input_frame = ttk.Frame(root)
+input_frame.pack(pady=10)
+
+entry = ttk.Entry(input_frame, width=40, bootstyle="info")
+entry.pack(side=LEFT, padx=5)
+
+submit_button = ttk.Button(input_frame, text="Submit", bootstyle="primary", command=submit_query)
+submit_button.pack(side=LEFT, padx=5)
+
+output_label = ttk.Label(root, text="", font=("Helvetica", 10), bootstyle="info")
+output_label.pack(pady=20)
+
+root.mainloop()
