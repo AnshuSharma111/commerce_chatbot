@@ -1,14 +1,26 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from helper import query_rag, initialise
+import threading
 
 def submit_query():
     query = entry.get()
 
+    submit_button.config(state=ttk.DISABLED)
     initialise()
+    thread = threading.Thread(target=run_query, args=(query,))
+    thread.start()
+
+    submit_button.config(state=ttk.ACTIVE)
+
+def run_query(query):
     output = query_rag(query)
 
+    # Update the UI
     output_label.config(text=f"{output}")
+
+    # Re-enable the button 
+    submit_button.config(state=ttk.NORMAL)
 
 root = ttk.Window(themename="darkly")
 root.title("Query Input App")
