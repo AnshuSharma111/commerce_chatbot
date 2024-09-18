@@ -2,7 +2,7 @@ from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from langchain_community.embeddings.ollama import OllamaEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.llms.ollama import Ollama
 import os
@@ -44,12 +44,12 @@ def addToChroma(chunks):
           new_chunks.append(chunk)
 
   if len(new_chunks):
-      print(f"👉 Adding new documents: {len(new_chunks)}")
+      print(f"🟥 Adding new documents: {len(new_chunks)}")
       new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
       db.add_documents(new_chunks, ids=new_chunk_ids)
       db.persist()
   else:
-      print("✅ No new documents to add")
+      print("🟩 No new documents to add")
 
 def generate_chunk_ids(chunks):
   last_page_id = None
@@ -97,21 +97,26 @@ def split_documents(documents):
 
 def query_rag(query):
    # Prepare the DB.
+    print("🟥Preparing Database...")
     embedding_function = get_embedding_function()
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+    print("🟩Prepared Database")
 
     # Search the DB.
+    print("🟥Searching the database...")
     results = db.similarity_search_with_score(query, k=3)
+    print("🟩Searched Databse.")
 
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
     prompt = prompt_template.format(context=context_text, question=query)
 
+    print("🟥Prompting Model")
     model = Ollama(model="gemma2")
     response_text = model.invoke(prompt)
 
     sources = [doc.metadata.get("id", None) for doc, _score in results]
-    formatted_response = f"Response: {response_text}\nSources: {sources}"
+    formatted_response = f"🟩Response: {response_text}\nSources: {sources}"
     print(formatted_response)
     return response_text
 
